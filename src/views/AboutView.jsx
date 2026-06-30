@@ -1,8 +1,148 @@
-import React from 'react';
-import { ShieldCheck, CheckCircle2, MapPin } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ShieldCheck, CheckCircle2, MapPin, Maximize, Minimize } from 'lucide-react';
 import { CONTACT_INFO } from '../data/constants.jsx';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 export default function AboutView() {
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = !!document.fullscreenElement;
+      setIsFullscreen(isCurrentlyFullscreen);
+      
+      // Force Leaflet to recalculate its viewport size after the fullscreen transition completes
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 100);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapRef.current, {
+        zoomControl: true,
+        scrollWheelZoom: true,
+      });
+
+      mapInstanceRef.current = map;
+
+      // CartoDB Voyager tiles showing detailed street layouts, highways, and town labels
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+      }).addTo(map);
+
+      // Coordinates from KML: [lat, lng]
+      const serviceAreaCoordinates = [
+        [44.3685614, -64.9664233],
+        [44.5489168, -65.224602],
+        [44.8651448, -64.9059985],
+        [45.1021513, -65.1751635],
+        [44.9857132, -65.4058764],
+        [44.6818648, -66.0266039],
+        [44.3056985, -66.4770434],
+        [44.0219817, -66.3781664],
+        [43.5500702, -66.0156176],
+        [44.3685614, -64.9664233]
+      ];
+
+      // Styled polygon matching Eaglestone theme (deep green outline, gold fill)
+      const polygon = L.polygon(serviceAreaCoordinates, {
+        color: '#086336',       // deep green
+        fillColor: '#feba40',   // gold
+        fillOpacity: 0.25,      // translucent fill
+        weight: 3               // outline width
+      }).addTo(map);
+
+      // Pins on the map as reference points for visitors
+      const referencePoints = [
+        { name: 'Bear River', coords: [44.5723, -65.6433], isHome: true },
+        { name: 'Digby', coords: [44.6208, -65.7584] },
+        { name: 'Annapolis Royal', coords: [44.7437, -65.5189] },
+        { name: 'Middleton', coords: [44.9426, -65.0682] },
+        { name: 'Caledonia', coords: [44.3750, -65.0311] },
+        { name: 'Halifax', coords: [44.6475, -63.5906] },
+        { name: 'Sydney', coords: [46.1364, -60.1956] },
+        { name: 'Yarmouth', coords: [43.8387, -66.1152] }
+      ];
+
+      // Helper function to create custom SVG map pins matching brand colors (Green and Gold)
+      const createPinIcon = (color, sizeMultiplier = 1) => {
+        const width = 24 * sizeMultiplier;
+        const height = 30 * sizeMultiplier;
+        return L.divIcon({
+          className: '',
+          html: `
+            <div style="display: flex; flex-direction: column; align-items: center; width: ${width}px; height: ${height}px;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${width}" height="${height}" fill="${color}" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/>
+                <circle cx="12" cy="10" r="3.5" fill="#ffffff"/>
+              </svg>
+            </div>
+          `,
+          iconSize: [width, height],
+          iconAnchor: [width / 2, height],
+          popupAnchor: [0, -height]
+        });
+      };
+
+      // Add pins to map
+      referencePoints.forEach(pt => {
+        const isHome = pt.isHome;
+        const pinColor = isHome ? '#086336' : '#feba40'; // Green for Home Base, Gold for references
+        const sizeMultiplier = isHome ? 1.35 : 1.0;
+
+        const marker = L.marker(pt.coords, {
+          icon: createPinIcon(pinColor, sizeMultiplier),
+          interactive: false // Non-clickable so hover cursors or popup interactions are disabled
+        }).addTo(map);
+
+        // Bind a permanent tooltip that floats cleanly below the pin
+        marker.bindTooltip(pt.name, {
+          permanent: true,
+          direction: 'bottom',
+          className: 'custom-town-tooltip',
+          offset: [0, 4]
+        });
+      });
+
+      // Zoom the map to perfectly fit the service area polygon on initial load
+      map.fitBounds(polygon.getBounds(), { padding: [35, 35] });
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
   return (
     <div className="pb-20">
       <div className="bg-[#086336] text-white py-16">
@@ -22,22 +162,51 @@ export default function AboutView() {
                   Based in Bear River, Nova Scotia, Eaglestone Excavation and Forestry Services is a locally owned and operated business dedicated to providing top-tier site work, excavation, and trucking services across Southwestern Nova Scotia.
                 </p>
                 <p>
-                  Owned and operated by Craig S Peck, we understand the unique landscape and environmental regulations of our province. As licensed septic installers and licensed well diggers, we are qualified to design, construct, and repair vital residential water and wastewater systems. We are also proud to work with provincial, municipal, and agricultural grant programs, helping homeowners and businesses secure funding and complete necessary upgrades.
+                  We understand the unique landscape and environmental regulations of our province. As licensed septic installers and licensed well diggers, we are qualified to design, construct, and repair vital residential water and wastewater systems. We are also proud to work with provincial, municipal, and agricultural grant programs, helping homeowners and businesses secure funding and complete necessary upgrades.
                 </p>
                 <p className="font-bold text-[#086336]">
                   We are fully licensed and insured, giving you peace of mind that your project is handled safely and to provincial standards.
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-               <div className="flex flex-col">
-                 <img src="couple_on_farm.png" alt="Craig S Peck and partner on the farm" className="rounded-lg h-48 w-full object-cover shadow-sm" />
-                 <span className="text-xs text-gray-500 mt-2 text-center font-medium italic">Craig S Peck & partner on the farm</span>
-               </div>
-               <div className="flex flex-col mt-8">
-                 <img src="nova_scotia_map.png" alt="Map of Nova Scotia highlighting Digby and Annapolis Counties" className="rounded-lg h-48 w-full object-cover shadow-sm" />
-                 <span className="text-xs text-gray-500 mt-2 text-center font-medium italic">Our Service Area: Digby & Annapolis Counties</span>
-               </div>
+            <div className="flex flex-col w-full">
+              <div 
+                ref={containerRef} 
+                className={`w-full h-[480px] overflow-hidden border border-[#cdd3cd] shadow-sm relative z-0 transition-all ${isFullscreen ? 'rounded-none' : 'rounded-lg'}`}
+                style={isFullscreen ? { height: '100vh', width: '100vw' } : {}}
+              >
+                <style>{`
+                  .leaflet-tooltip.custom-town-tooltip {
+                    background: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    color: #086336 !important;
+                    font-weight: 800 !important;
+                    font-size: 11px !important;
+                    font-family: sans-serif !important;
+                    text-shadow: -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff !important;
+                    padding: 0 !important;
+                    white-space: nowrap !important;
+                  }
+                  .leaflet-tooltip-bottom.custom-town-tooltip::before {
+                    display: none !important;
+                  }
+                `}</style>
+  
+                <div ref={mapRef} className="w-full h-full" />
+                
+                {/* Native Fullscreen Toggle Button */}
+                <button 
+                  onClick={toggleFullscreen}
+                  className="absolute top-4 right-4 z-[1000] bg-white p-2 rounded-lg border border-[#cdd3cd] shadow-md hover:bg-gray-50 active:scale-95 transition-all text-[#086336] flex items-center justify-center cursor-pointer"
+                  title={isFullscreen ? "Exit Fullscreen" : "Fullscreen Map"}
+                >
+                  {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+                </button>
+              </div>
+              <span className="text-xs text-gray-500 mt-2 text-center font-medium italic">
+                Serving Annapolis, Digby, and Yarmouth counties and surrounding areas (Scroll to zoom)
+              </span>
             </div>
           </div>
         </div>
