@@ -11,6 +11,7 @@ The website is designed as a modern, high-performance, responsive Single Page Ap
 - **Framework**: [React 19](https://react.dev/)
 - **Build Tool**: [Vite 8](https://vite.dev/)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) (using the native Vite plugin `@tailwindcss/vite` and `@import "tailwindcss"` syntax)
+- **Interactive Maps**: [Leaflet.js](https://leafletjs.com/) (used for rendering the service area boundary and reference pins with custom SVG markers and fullscreen controls)
 - **Icons**: [Lucide React](https://lucide.dev/) (modern, clean SVG icons)
 - **Form Handling**: [@formspree/react](https://formspree.io/) (used for the contact and inquiry form to submit emails securely without requiring a dedicated backend)
 - **Deployment**: [gh-pages](https://github.com/tschaub/gh-pages) (automatic build and deployment to GitHub Pages)
@@ -23,7 +24,8 @@ The codebase follows a clean, component-driven single-page architecture:
 
 ```
 ├── .github/              # GitHub workflows and settings (if any)
-├── public/               # Static assets (images, favicon, etc.)
+├── public/               # Static assets (images, favicon, CNAME domain settings, etc.)
+│   ├── CNAME             # Preserves custom domain settings on GitHub Pages
 │   ├── eaglestone_logo.jpg
 │   └── ... (excavation and material stock images)
 ├── src/
@@ -35,7 +37,7 @@ The codebase follows a clean, component-driven single-page architecture:
 │   │   └── constants.jsx      # Holds company contact details, services list, materials list, and image URLs
 │   ├── views/            # Content views rendered conditionally by App.jsx
 │   │   ├── HomeView.jsx       # Hero, core value propositions, and summary cards
-│   │   ├── AboutView.jsx      # Owner details, license details, and team introduction
+│   │   ├── AboutView.jsx      # Owner details, license details, and Eaglestone service area Leaflet map
 │   │   ├── ServicesView.jsx   # Excavation, septic, well-digging details with modal popups
 │   │   ├── MaterialsView.jsx  # Catalog of available gravels, sands, soils, and mulches for sale
 │   │   ├── ProjectsView.jsx   # Gallery of previous excavation and site-work projects
@@ -50,7 +52,7 @@ The codebase follows a clean, component-driven single-page architecture:
 ```
 
 ### Key Architectural Concepts:
-1. **State-Based SPA Routing**: Instead of client-side routing libraries, navigation is handled dynamically in [App.jsx](file:///c:/Users/shayn/Desktop/eaglestone-excavation/src/App.jsx) via a `currentPage` state variable. This guarantees lightweight bundle sizes and high speed.
+1. **Hash-Based SPA Routing**: Page routing is coordinated in [App.jsx](file:///c:/Users/shayn/Desktop/eaglestone-excavation/src/App.jsx) by syncing the URL hash (e.g., `#/about`, `#/services`) with the React view state. This enables page persistence on browser refreshes and full back/forward browser history support without needing complex backend redirects.
 2. **Dynamic SEO Engine**: Inside [App.jsx](file:///c:/Users/shayn/Desktop/eaglestone-excavation/src/App.jsx), a React `useEffect` hook monitors `currentPage` and programmatically updates `document.title` and the `<meta name="description">` tag. This ensures that search engine crawlers receive descriptive, page-specific metadata.
 3. **Decoupled Business Data**: Almost all business data, phone numbers, email addresses, and product listings reside in [constants.jsx](file:///c:/Users/shayn/Desktop/eaglestone-excavation/src/data/constants.jsx). If pricing, stock status, or descriptions change, they can be updated in a single place.
 
@@ -96,7 +98,7 @@ npm run preview
 
 ## 🚀 Deployment
 
-The site is configured to deploy directly to **GitHub Pages** under the subdirectory path specified in the `homepage` and `vite.config.js` (`/eaglestone-excavation/`).
+The site is configured to deploy directly to **GitHub Pages** under the custom domain `eaglestoneexcavation.ca` (using the fallback path specified in the `homepage` and `vite.config.js`).
 
 To deploy the latest changes to the live site, run:
 ```bash
@@ -106,6 +108,9 @@ npm run deploy
 ### What this script does:
 1. **`predeploy`**: Automatically triggers `npm run build` to compile the latest assets to `/dist`.
 2. **`deploy`**: Invokes the `gh-pages` CLI to push the content of the `/dist` directory to the `gh-pages` branch on GitHub, updating the live site within a few minutes.
+
+> [!NOTE]
+> Custom domain configurations are preserved across builds and deployments by the `CNAME` file located in the `/public` directory, which is automatically compiled into the root of the production folder.
 
 ---
 
