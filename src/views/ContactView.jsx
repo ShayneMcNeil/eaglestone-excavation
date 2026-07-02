@@ -1,5 +1,21 @@
 import React from 'react';
-import { Phone, Mail, MessageSquare, MapPin, CheckCircle2 } from 'lucide-react';
+import { Phone, Mail, MapPin, CheckCircle2 } from 'lucide-react';
+
+const FacebookIcon = ({ className, ...props }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+    {...props}
+  >
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  </svg>
+);
 import { useForm, ValidationError } from '@formspree/react';
 import Button from '../components/Button.jsx';
 import { CONTACT_INFO } from '../data/constants.jsx';
@@ -148,15 +164,32 @@ export default function ContactView() {
                     </div>
                   </div>
 
-                  <div className="flex items-start">
-                    <div className="bg-[#e5e8e6] p-3 rounded-full mr-4 text-[#086336]">
-                      <MessageSquare className="w-6 h-6" />
+                  <div className="flex flex-col space-y-3">
+                    <div className="flex items-start">
+                      <div className="bg-[#e5e8e6] p-3 rounded-full mr-4 text-[#086336] shrink-0">
+                        <FacebookIcon className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Facebook</p>
+                        <p className="text-base font-bold text-gray-900 leading-relaxed">
+                          Follow us on Facebook to stay up to date with our latest activities.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Facebook</p>
-                      <a href={CONTACT_INFO.facebook} target="_blank" rel="noreferrer" className="text-base font-bold text-gray-900 hover:text-[#086336] transition-colors">
-                        Message us on Facebook
-                      </a>
+                    <div className="w-full flex justify-center mt-1">
+                      <div className="w-[300px] overflow-hidden rounded-lg border border-[#cdd3cd] bg-gray-50">
+                        <iframe 
+                          src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fp%2FEaglestone-Excavation-and-Forestry-Services-61552757901413%2F&tabs=timeline&width=300&height=450&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true" 
+                          width="300" 
+                          height="450" 
+                          style={{ border: 'none', overflow: 'hidden', width: '300px' }} 
+                          scrolling="no" 
+                          frameBorder="0" 
+                          allowFullScreen={true} 
+                          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                          title="Eaglestone Excavation Facebook Feed"
+                        ></iframe>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -175,6 +208,8 @@ export default function ContactView() {
             </div>
           </div>
         </div>
+
+
       </div>
     </div>
   );

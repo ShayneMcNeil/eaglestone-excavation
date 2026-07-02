@@ -11,7 +11,12 @@ import ProjectsView from './views/ProjectsView.jsx';
 import ContactView from './views/ContactView.jsx';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState(() => {
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    const page = hash.replace(/^#\/?/, '') || 'home';
+    const validPages = ['home', 'about', 'services', 'materials', 'projects', 'contact'];
+    return validPages.includes(page) ? page : 'home';
+  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
 
@@ -20,6 +25,23 @@ export default function App() {
     window.scrollTo(0, 0);
     setIsMobileMenuOpen(false);
   }, [currentPage]);
+
+  // Synchronize hash updates with the state & handle popstate/history changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      const page = hash.replace(/^#\/?/, '') || 'home';
+      const validPages = ['home', 'about', 'services', 'materials', 'projects', 'contact'];
+      if (validPages.includes(page)) {
+        setCurrentPage(page);
+      } else {
+        setCurrentPage('home');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // Dynamic SEO Page Titles and Meta Descriptions
   useEffect(() => {
@@ -55,7 +77,7 @@ export default function App() {
   }, [currentPage]);
 
   const navigate = (page) => {
-    setCurrentPage(page);
+    window.location.hash = `#/${page}`;
   };
 
   return (
