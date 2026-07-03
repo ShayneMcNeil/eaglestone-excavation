@@ -89,7 +89,7 @@ export const MATERIALS = [
   { id: 11, name: "Crusher Dust", unit: "Tonne", price: "Request Pricing", status: "In Stock", description: "Fine stone dust, ideal as a final leveling layer under pavers, walkways, and patios. Delivered.", image: "crusher_dust.png" },
   { id: 12, name: "7-Inch Minus", unit: "Tonne", price: "Request Pricing", status: "In Stock", description: "Heavy sub-base aggregate containing rock sizes up to 7 inches down to fine particles. Delivered.", image: "seven_inch_minus.png" },
   { id: 13, name: "Fill Dirt", unit: "Load", price: "Request Pricing", status: "In Stock", description: "Unscreened fill dirt, ideal for filling large holes, raising elevation, and site grading. Delivered.", image: "d9ae4bb9-6137-4325-bdfe-aa7bda0973cd.png" },
-  { id: 14, name: "Landscape Boulders", unit: "Each/Tonne", price: "Request Pricing", status: "In Stock", description: "Natural rock boulders for decorative landscaping, property markers, and natural barriers. Delivered.", image: "55b19d7e-dff5-40a7-831f-c3f85a979bbc.png" }
+  { id: 14, name: "Landscape Boulders", unit: "Tonne", price: "Request Pricing", status: "In Stock", description: "Natural rock boulders for decorative landscaping, property markers, and natural barriers. Delivered.", image: "55b19d7e-dff5-40a7-831f-c3f85a979bbc.png" }
 ];
 
 export const GALLERY = [
